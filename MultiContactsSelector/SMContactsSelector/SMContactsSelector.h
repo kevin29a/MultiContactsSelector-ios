@@ -25,6 +25,7 @@ typedef enum
 @required
 
 - (void)numberOfRowsSelected:(NSInteger)numberRows withData:(NSArray *)data andDataType:(DATA_CONTACT)type;
+- (void)selectorViewDidDisappear;
 
 @end
 
@@ -63,6 +64,7 @@ typedef enum
 - (void)dismiss;
 - (void)displayChanges:(BOOL)yesOrNO;
 - (void)loadContacts;
+- (void)viewDidDisappear:(BOOL)animated;
 
 @property (nonatomic, retain) IBOutlet UITableView *table;
 @property (nonatomic, retain) IBOutlet UIBarButtonItem *cancelItem;

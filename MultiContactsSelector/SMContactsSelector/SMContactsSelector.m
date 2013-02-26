@@ -281,56 +281,59 @@
         table.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
     }
     
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 60000
-    
-    __block SMContactsSelector *controller = self;
-    
-    // Request authorization to Address Book
-    ABAddressBookRef addressBookRef = ABAddressBookCreateWithOptions(NULL, NULL);
-    
-    if (ABAddressBookGetAuthorizationStatus() == kABAuthorizationStatusNotDetermined)
-    {
-        ABAddressBookRequestAccessWithCompletion(addressBookRef,
-                                                 ^(bool granted, CFErrorRef error) {
-                                                     if (granted)
-                                                         [controller loadContacts];
-                                                     
-                                                 });
-    }
-    else if (ABAddressBookGetAuthorizationStatus() == kABAuthorizationStatusAuthorized)
-    {
-        // The user has previously given access, add the contact
-        [self loadContacts];
-    }
-    else
-    {
-        NSString *currentLanguage = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"AppleLanguages"] objectAtIndex:0] lowercaseString];
+//#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 60000
+
+    if(&ABAddressBookCreateWithOptions){
+        __block SMContactsSelector *controller = self;
         
-        NSString *msg = @"";
+        // Request authorization to Address Book
+        ABAddressBookRef addressBookRef = ABAddressBookCreateWithOptions(NULL, NULL);
         
-        if ([currentLanguage isEqualToString:@"es"])
+        if (ABAddressBookGetAuthorizationStatus() == kABAuthorizationStatusNotDetermined)
         {
-            msg = @"No se tiene permiso para obtener los contactos, por favor, actívelo en Preferencias de la privacidad.";
+            ABAddressBookRequestAccessWithCompletion(addressBookRef,
+                                                     ^(bool granted, CFErrorRef error) {
+                                                         if (granted)
+                                                             [controller loadContacts];
+                                                         
+                                                     });
+        }
+        else if (ABAddressBookGetAuthorizationStatus() == kABAuthorizationStatusAuthorized)
+        {
+            // The user has previously given access, add the contact
+            [self loadContacts];
         }
         else
         {
-            msg = @"Unable to get your contacts, enable it on your privacy preferences.";
+            NSString *currentLanguage = [[[[NSUserDefaults standardUserDefaults] objectForKey:@"AppleLanguages"] objectAtIndex:0] lowercaseString];
+            
+            NSString *msg = @"";
+            
+            if ([currentLanguage isEqualToString:@"es"])
+            {
+                msg = @"No se tiene permiso para obtener los contactos, por favor, actívelo en Preferencias de la privacidad.";
+            }
+            else
+            {
+                msg = @"Unable to get your contacts, enable it on your privacy preferences.";
+            }
+            
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@""
+                                                            message:msg
+                                                           delegate:self
+                                                  cancelButtonTitle:nil
+                                                  otherButtonTitles:@"OK", nil];
+            alert.tag = 457;
+            [alert show];
+            
+            return;
         }
-        
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@""
-                                                        message:msg
-                                                       delegate:self
-                                              cancelButtonTitle:nil
-                                              otherButtonTitles:@"OK", nil];
-        alert.tag = 457;
-        [alert show];
-        
-        return;
-    }
     
-#else
-    [self loadContacts];
-#endif
+//#else
+    } else {
+        [self loadContacts];
+    }
+//#endif
     
     selectedRow = [NSMutableArray new];
 	table.editing = NO;
@@ -571,8 +574,9 @@
     
     
     dataArray = [[NSMutableArray alloc] initWithObjects:info, nil];
+    
     NSLog(@"%@", info);
-  
+    
     self.filteredListContent = [NSMutableArray arrayWithCapacity:[data count]];
     [self.searchDisplayController.searchBar setShowsCancelButton:NO];
     [info release];
@@ -627,12 +631,20 @@
 		}
 	}
     
-    if ([self.delegate respondsToSelector:@selector(numberOfRowsSelected:withData:andDataType:)]) 
+    
+    if ([self.delegate respondsToSelector:@selector(numberOfRowsSelected:withData:andDataType:)])
         [self.delegate numberOfRowsSelected:[objects count] withData:objects andDataType:requestData];
+
+ 	[objects release];
+    [self dismiss];
+}
+
+- (void)viewDidDisappear:(BOOL)animated
+{
+    if ([self.delegate respondsToSelector:@selector(selectorViewDidDisappear)])
+        [self.delegate selectorViewDidDisappear];
     
-    
-	[objects release];
-	[self dismiss];
+    [super viewDidDisappear:animated];
 }
 
 - (void)dismiss
