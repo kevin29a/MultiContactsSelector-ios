@@ -265,7 +265,7 @@
 	{
 		arrayLetters = [[[NSArray englishAlphabet] createList] retain];
         cancelItem.title = @"Cancel";
-        doneItem.title = @"Done";
+        doneItem.title = @"Next";
         alertTitle = @"Select";
 	}
     
